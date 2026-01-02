@@ -6,6 +6,6 @@
  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 
-<main>
+<main class="bg-transparent text-white min-h-screen p-4">
   <h1 class="text-3xl font-bold underline">Hello world!</h1>
 </main>
