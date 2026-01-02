@@ -15,10 +15,13 @@
   import { getCurrentWindow } from "@tauri-apps/api/window";
   import MinusIcon from "../icons/MinusIcon.svelte";
   import UserIcon from "../icons/UserIcon.svelte";
+  import UserDropdown from "../components/UserDropdown.svelte";
 
   let appWindow: ReturnType<typeof getCurrentWindow>;
   let isMaximized = false;
   let unlisten: (() => void) | null = null;
+  let showUserDropdown = false;
+  let clickOutsideUnlisten: (() => void) | null = null;
 
   onMount(async () => {
     appWindow = getCurrentWindow();
@@ -28,11 +31,24 @@
     unlisten = await appWindow.onResized(async () => {
       isMaximized = await appWindow.isMaximized();
     });
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.user-button') && !target.closest('.user-dropdown')) {
+        showUserDropdown = false;
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    clickOutsideUnlisten = () => document.removeEventListener('click', handleClickOutside);
   });
 
   onDestroy(() => {
     if (unlisten) {
       unlisten();
+    }
+    if (clickOutsideUnlisten) {
+      clickOutsideUnlisten();
     }
   });
 
@@ -54,13 +70,15 @@
   <div
     class="h-12 select-none grid grid-cols-[max-content_auto_max-content] fixed top-0 left-0 right-0 z-50 bg-[#2e2e2e] shadow-md"
   >
-    <div class="flex">
+    <div class="user-button flex relative">
       <button
+        onclick={() => showUserDropdown = !showUserDropdown}
         title="user"
         class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-blue-600"
       >
         <UserIcon />
       </button>
+      <UserDropdown show={showUserDropdown} />
     </div>
     <div
       id="titlebar"
