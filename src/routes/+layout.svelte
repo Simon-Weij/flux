@@ -13,6 +13,7 @@
   import "../app.css";
   import { onMount, onDestroy } from "svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
+  import { goto } from '$app/navigation';
   import MinusIcon from "../icons/MinusIcon.svelte";
   import UserIcon from "../icons/UserIcon.svelte";
   import UserDropdown from "../components/UserDropdown.svelte";
@@ -78,7 +79,7 @@
       >
         <UserIcon />
       </button>
-      <UserDropdown show={showUserDropdown} />
+      <UserDropdown show={showUserDropdown} onSettings={() => { showUserDropdown = false; goto('/settings'); }} />
     </div>
     <div
       id="titlebar"

@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { goto } from '$app/navigation';
   export let show: boolean = false;
+  export let onSettings: () => void;
 </script>
 
 {#if show}
@@ -7,6 +9,7 @@
     class="user-dropdown absolute top-12 left-0 bg-[#2e2e2e] border border-gray-600 rounded-md shadow-lg z-50"
   >
     <button
+      onclick={onSettings}
       class="block w-full px-4 py-2 text-left text-white transition-colors cursor-pointer hover:bg-gray-700"
     >
       Settings
