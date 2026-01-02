@@ -29,6 +29,7 @@
           cargo
           cargo-tauri
           nodejs
+          obs-cli
         ];
 
         buildInputs = with pkgs; [
