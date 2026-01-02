@@ -74,7 +74,7 @@
       <button
         onclick={() => showUserDropdown = !showUserDropdown}
         title="user"
-        class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-blue-600"
+        class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-gray-500"
       >
         <UserIcon />
       </button>
@@ -99,14 +99,14 @@
       <button
         onclick={minimize}
         title="minimize"
-        class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-blue-600"
+        class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-gray-500"
       >
         <MinusIcon />
       </button>
       <button
         onclick={toggleMaximize}
         title="maximize"
-        class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-blue-600"
+        class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-gray-500"
       >
         {#if isMaximized}
           <RestoreIcon />
