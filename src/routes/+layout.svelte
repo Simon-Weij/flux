@@ -13,16 +13,18 @@
   import "../app.css";
   import { onMount, onDestroy } from "svelte";
   import { getCurrentWindow } from "@tauri-apps/api/window";
-  import { goto } from '$app/navigation';
+  import { goto } from "$app/navigation";
   import MinusIcon from "../icons/MinusIcon.svelte";
   import UserIcon from "../icons/UserIcon.svelte";
   import UserDropdown from "../components/UserDropdown.svelte";
+  import HomeIcon from "../icons/HomeIcon.svelte";
 
   let appWindow: ReturnType<typeof getCurrentWindow>;
   let isMaximized = false;
   let unlisten: (() => void) | null = null;
   let showUserDropdown = false;
   let clickOutsideUnlisten: (() => void) | null = null;
+  let showFirstLaunchModal = false;
 
   onMount(async () => {
     appWindow = getCurrentWindow();
@@ -35,13 +37,22 @@
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.user-button') && !target.closest('.user-dropdown')) {
+      if (
+        !target.closest(".user-button") &&
+        !target.closest(".user-dropdown")
+      ) {
         showUserDropdown = false;
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
-    clickOutsideUnlisten = () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    clickOutsideUnlisten = () =>
+      document.removeEventListener("click", handleClickOutside);
+
+    if (!localStorage.getItem("firstLaunch")) {
+      showFirstLaunchModal = true;
+      localStorage.setItem("firstLaunch", "true");
+    }
   });
 
   onDestroy(() => {
@@ -71,21 +82,31 @@
   <div
     class="h-12 select-none grid grid-cols-[max-content_auto_max-content] fixed top-0 left-0 right-0 z-50 bg-[#2e2e2e] shadow-md"
   >
-    <div class="user-button flex relative">
+    <div class="relative flex user-button">
       <button
-        onclick={() => showUserDropdown = !showUserDropdown}
+        onclick={() => (showUserDropdown = !showUserDropdown)}
         title="user"
         class="inline-flex items-center justify-center w-8 p-0 m-0 transition-colors bg-transparent border-none appearance-none cursor-pointer hover:bg-gray-500"
       >
         <UserIcon />
       </button>
-      <UserDropdown show={showUserDropdown} onSettings={() => { showUserDropdown = false; goto('/settings'); }} />
+      <UserDropdown
+        show={showUserDropdown}
+        onSettings={() => {
+          showUserDropdown = false;
+          goto("/settings");
+        }}
+        onHome={() => {
+          showUserDropdown = false;
+          goto("/");
+        }}
+      />
     </div>
     <div
       id="titlebar"
       class="flex-1"
       role="button"
-      tabindex="-1"
+      tabindex="0"
       onmousedown={(e) => {
         if (e.buttons === 1) {
           if (e.detail === 2) {
@@ -93,6 +114,12 @@
           } else {
             appWindow?.startDragging();
           }
+        }
+      }}
+      onkeydown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleMaximize();
         }
       }}
     ></div>
@@ -128,4 +155,31 @@
   <div class="flex-1 pt-12 overflow-auto">
     <slot />
   </div>
+
+  {#if showFirstLaunchModal}
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md"
+      onclick={() => (showFirstLaunchModal = false)}
+      onkeydown={(e) => {
+        if (e.key === "Escape") showFirstLaunchModal = false;
+      }}
+      role="button"
+      tabindex="0"
+    >
+      <div
+        class="w-full max-w-md p-6 mx-4 bg-gray-800 rounded-lg shadow-lg"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+        role="dialog"
+        tabindex="-1"
+      >
+        <h2 class="mb-4 text-xl font-bold text-white">Hello World!</h2>
+        <p class="mb-4 text-gray-300">Welcome to your first launch.</p>
+        <button
+          class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
+          onclick={() => (showFirstLaunchModal = false)}>Close</button
+        >
+      </div>
+    </div>
+  {/if}
 </div>

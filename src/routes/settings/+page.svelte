@@ -9,6 +9,7 @@
   let pressedModifiers = new Set<string>();
   let mainKey = "";
   let isCapturing = false;
+  let showToast = false;
 
   const backendOptions = [{ value: "obs", label: "OBS" }];
 
@@ -50,7 +51,21 @@
 
   $: displayHotkey = isCapturing ? currentHotkey : clipHotkey;
 
+  function saveSettings() {
+    localStorage.setItem("backend", backend);
+    localStorage.setItem("clipLength", clipLength.toString());
+    localStorage.setItem("clipHotkey", clipHotkey);
+    showToast = true;
+    setTimeout(() => (showToast = false), 3000);
+  }
+
   onMount(() => {
+    // Load settings from localStorage
+    backend = localStorage.getItem("backend") || "obs";
+    clipLength = parseInt(localStorage.getItem("clipLength") || "30");
+    clipHotkey = localStorage.getItem("clipHotkey") || "Alt+Z";
+    currentHotkey = clipHotkey;
+
     const keydownListener = (event: KeyboardEvent) => handleKeydown(event);
     const keyupListener = (event: KeyboardEvent) => handleKeyup(event);
 
@@ -64,38 +79,57 @@
   });
 </script>
 
-<h1 class="text-white text-center mb-8 text-2xl font-bold">Settings</h1>
+<div class="px-[20%] py-[3%]">
+  <h1 class="mb-8 text-2xl font-bold text-center text-white">Settings</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  <div>
-    <label for="backend" class="block text-gray-300 mb-2 font-medium"
-      >Backend:</label
-    >
-    <Select id="backend" bind:value={backend} options={backendOptions} />
+  <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div>
+      <label for="backend" class="block mb-2 font-medium text-gray-300"
+        >Backend:</label
+      >
+      <Select id="backend" bind:value={backend} options={backendOptions} />
+    </div>
+
+    <div>
+      <label for="clipLength" class="block mb-2 font-medium text-gray-300"
+        >Clip Length:</label
+      >
+      <input
+        type="number"
+        id="clipLength"
+        bind:value={clipLength}
+        class="w-full p-3 text-white bg-gray-800 border border-gray-600 rounded focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25"
+      />
+    </div>
+
+    <div>
+      <label for="clipHotkey" class="block mb-2 font-medium text-gray-300"
+        >Clip Hotkey:</label
+      >
+      <button
+        id="clipHotkey"
+        onclick={startCapture}
+        class="w-full p-3 text-left text-white bg-gray-700 border border-gray-600 rounded cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25"
+      >
+        {displayHotkey}
+      </button>
+    </div>
   </div>
 
-  <div>
-    <label for="clipLength" class="block text-gray-300 mb-2 font-medium"
-      >Clip Length:</label
-    >
-    <input
-      type="number"
-      id="clipLength"
-      bind:value={clipLength}
-      class="w-full p-3 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25"
-    />
-  </div>
-
-  <div>
-    <label for="clipHotkey" class="block text-gray-300 mb-2 font-medium"
-      >Clip Hotkey:</label
-    >
+  <div class="mt-8 text-center">
     <button
-      id="clipHotkey"
-      onclick={startCapture}
-      class="w-full p-3 border border-gray-600 rounded bg-gray-700 text-white cursor-pointer focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/25 text-left"
+      onclick={saveSettings}
+      class="px-6 py-3 font-medium text-white bg-gray-600 rounded-lg cursor-pointer hover:bg-gray-400"
     >
-      {displayHotkey}
+      Save Settings
     </button>
   </div>
 </div>
+
+{#if showToast}
+  <div
+    class="fixed z-50 px-4 py-2 text-white bg-green-600 rounded-lg shadow-lg bottom-4 right-4"
+  >
+    Successfully saved settings!
+  </div>
+{/if}
