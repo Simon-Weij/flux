@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
   export let show: boolean = false;
   export let onSettings: () => void;
 </script>
