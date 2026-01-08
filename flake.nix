@@ -30,6 +30,7 @@
           cargo-tauri
           nodejs
           obs-cli
+          libnotify
         ];
 
         buildInputs = with pkgs; [
@@ -38,6 +39,7 @@
           cairo
           gdk-pixbuf
           glib
+          glib.dev
           gtk3
           harfbuzz
           librsvg
