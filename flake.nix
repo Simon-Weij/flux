@@ -31,6 +31,7 @@
           nodejs
           obs-cli
           libnotify
+          python313
         ];
 
         buildInputs = with pkgs; [
@@ -47,6 +48,11 @@
           pango
           webkitgtk_4_1
           openssl
+
+          poetry
+          linuxHeaders
+          pkg-config
+          gcc
         ];
 
         shellHook = ''

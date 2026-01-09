@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { invoke } from "@tauri-apps/api/core";
   import Select from "../../components/Select.svelte";
 
   let backend = "obs";
   let clipLength = 30;
-  let clipHotkey = "Alt+Z";
-  let currentHotkey = clipHotkey;
+  let clipHotkey: string[] = ["KEY_LEFTALT", "KEY_Z"];
+  let currentHotkey: string[] = [...clipHotkey];
   let pressedModifiers = new Set<string>();
   let mainKey = "";
   let isCapturing = false;
@@ -13,9 +14,34 @@
 
   const backendOptions = [{ value: "obs", label: "OBS" }];
 
+  function keyToLinuxKey(key: string, location?: number): string {
+    const keyMap: { [key: string]: string } = {
+      "Control": location === 1 ? "KEY_LEFTCTRL" : "KEY_RIGHTCTRL",
+      "Alt": location === 1 ? "KEY_LEFTALT" : "KEY_RIGHTALT", 
+      "Shift": location === 1 ? "KEY_LEFTSHIFT" : "KEY_RIGHTSHIFT",
+      " ": "KEY_SPACE",
+      "Enter": "KEY_ENTER",
+      "Escape": "KEY_ESC",
+      "Backspace": "KEY_BACKSPACE",
+      "Tab": "KEY_TAB",
+      "ArrowUp": "KEY_UP",
+      "ArrowDown": "KEY_DOWN",
+      "ArrowLeft": "KEY_LEFT",
+      "ArrowRight": "KEY_RIGHT",
+    };
+
+    if (keyMap[key]) return keyMap[key];
+    if (key.length === 1) {
+      const code = key.toUpperCase().charCodeAt(0);
+      if (code >= 65 && code <= 90) return `KEY_${key.toUpperCase()}`;
+      if (code >= 48 && code <= 57) return `KEY_${key}`;
+    }
+    return `KEY_${key.toUpperCase()}`;
+  }
+
   function startCapture() {
     isCapturing = true;
-    currentHotkey = "Press keys";
+    currentHotkey = [];
     pressedModifiers.clear();
     mainKey = "";
   }
@@ -23,48 +49,67 @@
   function handleKeydown(event: KeyboardEvent) {
     if (!isCapturing) return;
     event.preventDefault();
-    if (event.key === "Control") pressedModifiers.add("Ctrl");
-    else if (event.key === "Alt") pressedModifiers.add("Alt");
-    else if (event.key === "Shift") pressedModifiers.add("Shift");
-    else mainKey = event.key.toUpperCase();
+    if (event.key === "Control") pressedModifiers.add(keyToLinuxKey(event.key, event.location));
+    else if (event.key === "Alt") pressedModifiers.add(keyToLinuxKey(event.key, event.location));
+    else if (event.key === "Shift") pressedModifiers.add(keyToLinuxKey(event.key, event.location));
+    else mainKey = keyToLinuxKey(event.key);
     updateCurrentHotkey();
   }
 
   function handleKeyup(event: KeyboardEvent) {
     if (!isCapturing) return;
-    if (event.key === "Control") pressedModifiers.delete("Ctrl");
-    else if (event.key === "Alt") pressedModifiers.delete("Alt");
-    else if (event.key === "Shift") pressedModifiers.delete("Shift");
+    if (event.key === "Control") pressedModifiers.delete(keyToLinuxKey(event.key, event.location));
+    else if (event.key === "Alt") pressedModifiers.delete(keyToLinuxKey(event.key, event.location));
+    else if (event.key === "Shift") pressedModifiers.delete(keyToLinuxKey(event.key, event.location));
     else mainKey = "";
     if (pressedModifiers.size === 0 && mainKey === "") {
-      clipHotkey = currentHotkey;
+      clipHotkey = [...currentHotkey];
       isCapturing = false;
     }
   }
 
   function updateCurrentHotkey() {
     if (!isCapturing) return;
-    let keys = Array.from(pressedModifiers);
-    if (mainKey) keys.push(mainKey);
-    currentHotkey = keys.join("+");
+    currentHotkey = Array.from(pressedModifiers);
+    if (mainKey) currentHotkey.push(mainKey);
   }
 
-  $: displayHotkey = isCapturing ? currentHotkey : clipHotkey;
+  $: displayHotkey = isCapturing ? currentHotkey.join(" + ") : clipHotkey.join(" + ");
 
-  function saveSettings() {
-    localStorage.setItem("backend", backend);
-    localStorage.setItem("clipLength", clipLength.toString());
-    localStorage.setItem("clipHotkey", clipHotkey);
-    showToast = true;
-    setTimeout(() => (showToast = false), 3000);
+  async function saveSettings() {
+    try {
+      await invoke("save_settings", {
+        backend,
+        clipLength,
+        clipHotkey,
+      });
+      showToast = true;
+      setTimeout(() => (showToast = false), 3000);
+    } catch (error) {
+      console.error("Failed to save settings:", error);
+    }
   }
 
   onMount(() => {
-    // Load settings from localStorage
-    backend = localStorage.getItem("backend") || "obs";
-    clipLength = parseInt(localStorage.getItem("clipLength") || "30");
-    clipHotkey = localStorage.getItem("clipHotkey") || "Alt+Z";
-    currentHotkey = clipHotkey;
+    (async () => {
+      try {
+        const settings = (await invoke("load_settings")) as {
+          backend: string;
+          clip_length: number;
+          clip_hotkey: string[];
+        };
+        backend = settings.backend;
+        clipLength = settings.clip_length;
+        clipHotkey = settings.clip_hotkey;
+        currentHotkey = [...clipHotkey];
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+        backend = "obs";
+        clipLength = 30;
+        clipHotkey = ["KEY_LEFTALT", "KEY_Z"];
+        currentHotkey = [...clipHotkey];
+      }
+    })();
 
     const keydownListener = (event: KeyboardEvent) => handleKeydown(event);
     const keyupListener = (event: KeyboardEvent) => handleKeyup(event);

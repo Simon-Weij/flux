@@ -17,7 +17,6 @@
   import MinusIcon from "../icons/MinusIcon.svelte";
   import UserIcon from "../icons/UserIcon.svelte";
   import UserDropdown from "../components/UserDropdown.svelte";
-  import { setupGlobalShortcut } from "../background/background";
 
   let appWindow: ReturnType<typeof getCurrentWindow>;
   let isMaximized = false;
@@ -34,8 +33,6 @@
     unlisten = await appWindow.onResized(async () => {
       isMaximized = await appWindow.isMaximized();
     });
-
-    await setupGlobalShortcut();
 
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
