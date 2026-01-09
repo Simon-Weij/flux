@@ -31,9 +31,18 @@ def load_settings():
         
     if not os.path.exists(settings_path):
         return {
-            "backend": "obs",
+            "backend": "gpu-screen-recorder",
             "clip_length": 30,
-            "clip_hotkey": ["KEY_LEFTALT", "KEY_Z"]
+            "clip_hotkey": ["KEY_LEFTALT", "KEY_Z"],
+            "window": "screen",
+            "framerate": 60,
+            "replay_time": 30,
+            "container": "mp4",
+            "output": "~/Videos/clip",
+            "codec": "h264",
+            "quality": 20,
+            "framerate_mode": "vfr",
+            "bitrate_mode": "cqp"
         }
     
     with open(settings_path, 'r') as f:
@@ -72,9 +81,37 @@ def main():
     keyboard = find_keyboard()
     print(f"Using keyboard: {keyboard.name} at {keyboard.path}")
 
-    for event in keyboard.read_loop():
-        if event.type == evdev.ecodes.EV_KEY:
-            keypress(event)
+    settings = load_settings()
+    backend = settings.get("backend", "gpu-screen-recorder")
+    
+    if backend == "gpu-screen-recorder":
+        window = settings.get("window", "screen")
+        framerate = settings.get("framerate", 60)
+        replay_time = settings.get("replay_time", 30)
+        container = settings.get("container", "mp4")
+        output = os.path.expanduser(settings.get("output", "~/Videos/clip"))
+        codec = settings.get("codec", "h264")
+        quality = settings.get("quality", 20)
+        framerate_mode = settings.get("framerate_mode", "vfr")
+        bitrate_mode = settings.get("bitrate_mode", "cqp")
+        
+        cmd = [
+            'gpu-screen-recorder',
+            '-w', window,
+            '-f', str(framerate),
+            '-r', str(replay_time),
+            '-c', container,
+            '-o', output,
+            '-a', "default_output",
+            '-k', codec,
+            '-q', str(quality),
+            '-fm', framerate_mode,
+            '-bm', bitrate_mode
+        ]
+        print(f"Starting recorder with command: {cmd}")
+        subprocess.run(cmd)
+    else:
+        print(f"Backend {backend} not supported")
 
 if __name__ == "__main__":
     main()

@@ -35,6 +35,7 @@
         ];
 
         buildInputs = with pkgs; [
+          alsa-lib
           at-spi2-atk
           atkmm
           cairo
