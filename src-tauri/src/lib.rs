@@ -34,7 +34,6 @@ struct Settings {
     backend: String,
     clip_length: u32,
     clip_hotkey: Vec<String>,
-    window: String,
     framerate: u32,
     replay_time: u32,
     container: String,
@@ -47,13 +46,12 @@ struct Settings {
 
 #[tauri::command]
 fn save_settings(backend: String, clip_length: u32, clip_hotkey: Vec<String>,
-    window: String, framerate: u32, replay_time: u32, container: String, output: String,
+    framerate: u32, replay_time: u32, container: String, output: String,
     codec: String, quality: u32, framerate_mode: String, bitrate_mode: String) -> Result<(), String> {
     let settings = Settings {
         backend,
         clip_length,
         clip_hotkey,
-        window,
         framerate,
         replay_time,
         container,
@@ -123,7 +121,6 @@ fn load_settings() -> Result<Settings, String> {
             backend: "gpu-screen-recorder".to_string(),
             clip_length: 30,
             clip_hotkey: vec!["KEY_LEFTALT".to_string(), "KEY_Z".to_string()],
-            window: "screen".to_string(),
             framerate: 60,
             replay_time: 30,
             container: "mp4".to_string(),

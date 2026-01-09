@@ -6,7 +6,6 @@
   let backend = "gpu-screen-recorder";
   let clipLength = 30;
   let clipHotkey: string[] = ["KEY_LEFTALT", "KEY_Z"];
-  let window = "screen";
   let framerate = 60;
   let replay_time = 30;
   let container = "mp4";
@@ -126,7 +125,6 @@
         backend,
         clipLength,
         clipHotkey,
-        window,
         framerate,
         replay_time,
         container,
@@ -150,7 +148,6 @@
           backend: string;
           clip_length: number;
           clip_hotkey: string[];
-          window: string;
           framerate: number;
           replay_time: number;
           container: string;
@@ -163,7 +160,6 @@
         backend = settings.backend;
         clipLength = settings.clip_length;
         clipHotkey = settings.clip_hotkey;
-        window = settings.window;
         framerate = settings.framerate;
         replay_time = settings.replay_time;
         container = settings.container;
@@ -184,7 +180,6 @@
         backend = "gpu-screen-recorder";
         clipLength = 30;
         clipHotkey = ["KEY_LEFTALT", "KEY_Z"];
-        window = "screen";
         framerate = 60;
         replay_time = 30;
         container = "mp4";
@@ -247,17 +242,6 @@
     </div>
 
     {#if backend === "gpu-screen-recorder"}
-      <div>
-        <label for="window" class="block mb-2 font-medium text-gray-300"
-          >Window:</label
-        >
-        <Select
-          id="window"
-          bind:value={window}
-          options={captureOptions.map((opt) => ({ value: opt, label: opt }))}
-        />
-      </div>
-
       <div>
         <label for="framerate" class="block mb-2 font-medium text-gray-300"
           >Framerate:</label

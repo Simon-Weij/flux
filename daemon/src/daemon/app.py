@@ -34,7 +34,6 @@ def load_settings():
             "backend": "gpu-screen-recorder",
             "clip_length": 30,
             "clip_hotkey": ["KEY_LEFTALT", "KEY_Z"],
-            "window": "screen",
             "framerate": 60,
             "replay_time": 30,
             "container": "mp4",
@@ -85,7 +84,6 @@ def main():
     backend = settings.get("backend", "gpu-screen-recorder")
     
     if backend == "gpu-screen-recorder":
-        window = settings.get("window", "screen")
         framerate = settings.get("framerate", 60)
         replay_time = settings.get("replay_time", 30)
         container = settings.get("container", "mp4")
@@ -97,7 +95,7 @@ def main():
         
         cmd = [
             'gpu-screen-recorder',
-            '-w', window,
+            '-w', "screen",
             '-f', str(framerate),
             '-r', str(replay_time),
             '-c', container,
