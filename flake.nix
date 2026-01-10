@@ -1,10 +1,3 @@
-/*
-Copyright (c) 2026 Simon-Weij
-
-This Source Code Form is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at https://mozilla.org/MPL/2.0/.
-*/
 {
   description = "Development shell for Flux";
 
@@ -20,14 +13,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
     rustPlatform = pkgs.rustPlatform;
-  in {
-    packages."${system}".default = rustPlatform.buildRustPackage (finalAttrs: {
+
+    fluxPkg = rustPlatform.buildRustPackage (finalAttrs: {
       pname = "flux";
       version = "0.1.0";
 
       src = ./.;
-
-      cargoLock.lockFile = ./src-tauri/Cargo.lock;
+      cargoRoot = "src-tauri";
+      cargoLock = {lockFile = ./src-tauri/Cargo.lock;};
 
       npmDeps = pkgs.fetchNpmDeps {
         name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
@@ -69,9 +62,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
           pkg-config
           gcc
         ]
-        ++ lib.optionals stdenv.hostPlatform.isLinux [
-          glib-networking
-        ];
+        ++ lib.optionals stdenv.hostPlatform.isLinux [glib-networking];
 
       desktopItems = [
         (pkgs.makeDesktopItem {
@@ -90,45 +81,17 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         cp ${finalAttrs.src}/src-tauri/icons/icon.ico $out/share/icons/hicolor/256x256/apps/flux.ico
       '';
 
-      cargoRoot = "src-tauri";
       buildAndTestSubdir = finalAttrs.cargoRoot;
     });
+  in {
+    packages."${system}".default = fluxPkg;
+
     devShells."${system}".default = pkgs.mkShell {
-      nativeBuildInputs = with pkgs; [
-        expect
-        pkg-config
-        gobject-introspection
-        rustc
-        cargo
-        tauri
-        nodejs
-        libnotify
-        python313
-      ];
-
-      buildInputs = with pkgs; [
-        alsa-lib
-        at-spi2-atk
-        atkmm
-        cairo
-        gdk-pixbuf
-        glib
-        glib.dev
-        gtk3
-        harfbuzz
-        librsvg
-        libsoup_3
-        pango
-        webkitgtk_4_1
-        openssl
-
-        poetry
-        pkg-config
-        gcc
-      ];
+      nativeBuildInputs = fluxPkg.nativeBuildInputs;
+      buildInputs = fluxPkg.buildInputs;
 
       shellHook = ''
-        export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}";
+        export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}"
         echo "Dev environment loaded"
       '';
     };
